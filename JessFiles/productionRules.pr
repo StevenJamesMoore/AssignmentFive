@@ -160,8 +160,8 @@
 ;; so no observable actions.
 ;;
 
-
-(defrule final-hr-same-phenotype
+(defrule infer-rec-from-same-phenotype
+   (declare (salience -5))
    ?p <- (problem (subgoal make-inferences))
    ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?p))
    ?con-final <- (conclusion(is-inferred FALSE))
@@ -169,6 +169,44 @@
    ?con <- (conclusion(con-type final)(con-subtype "homozygous recessive"))
     =>
    (modify ?con-final (con-subtype "homozygous recessive")(is-inferred TRUE)(is-written FALSE))
+    )
+
+(defrule infer-rec-from-diff-phenotype
+   (declare (salience -5))
+   ?p <- (problem (subgoal make-inferences))
+   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?p))
+   ?con-final <- (conclusion(is-inferred FALSE))
+   ?s <- (strain (conclusions $? ?con $?)(phenotype ?p2))
+   (test(neq ?p ?p2))
+   ?con <- (conclusion(con-type final)(con-subtype "homozygous recessive"))
+    =>
+   (modify ?con-final (con-subtype "homozygous recessive")(is-inferred TRUE)(is-written FALSE))
+    )
+
+(defrule infer-dom-from-same-phenotype
+   (declare (salience -5))
+   ?p <- (problem (subgoal make-inferences))
+   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?p))
+   ?con-final <- (conclusion(is-inferred FALSE))
+   ?con-part <- (conclusion(is-inferred TRUE)(con-subtype "homozygous"))
+   ?s <- (strain (conclusions $? ?con $?)(phenotype ?p))
+   ?con <- (conclusion(con-type final)(con-subtype "homozygous dominant"))
+   ?con <- (conclusion(con-type final)(con-subtype "heterozygous"))
+    =>
+   (modify ?con-final (con-subtype "homozygous dominant")(is-inferred TRUE)(is-written FALSE))
+    )
+
+(defrule infer-dom-from-diff-phenotype
+   (declare (salience -5))
+   ?p <- (problem (subgoal make-inferences))
+   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?p))
+   ?con-final <- (conclusion(is-inferred FALSE))
+   ?con-part <- (conclusion(is-inferred TRUE)(con-subtype "homozygous recessive or heterozygous"))
+   ?s <- (strain (conclusions $? ?con $?)(phenotype ?p2))
+   (test(neq ?p ?p2))
+   ?con <- (conclusion(con-type final)(con-subtype "homozygous recessive"))
+    =>
+   (modify ?con-final (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
     )
 
 ;; You need to add a number of rules for making new inferences about the strains being crossed.
@@ -215,11 +253,6 @@
                  ;; Make sure you delete this call to bind.
    (predict ?sel UpdateComboBox ?con)
    (modify ?c (is-written TRUE))
-        ;; Add Jess code for recording the observable action in the representation of the interface
-        ;;    in working memory (it was already recorded in the semantic representation by the
-        ;;    inference rules)
-        ;; Note this rule should not change the subgoal, since it does not know when all inferences
-        ;;    have been entered.
         )
 
 ;; 
@@ -243,11 +276,9 @@
 
 
 (defrule done-with-mandatory-input
+    (declare (salience -25))
     ?p <- (problem (subgoal enter-inferences))
-        ;; Add Jess code specifying the conditions under which all key pending inferences have been
-        ;;     entered.  This is challenging.  You may need to use the Jess construct "not" and it is
-        ;;     possible you need to augment one or more of your templates to make these conditions easily
-        ;;     expressible.  
+    (not (conclusion (is-inferred TRUE)(is-written FALSE)))
     =>
     (modify ?p (subgoal select-cross))
         ;; This is all the rule needs on the rhs.
