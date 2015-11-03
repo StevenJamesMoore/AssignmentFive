@@ -128,8 +128,8 @@
    )
    (retract ?c)
         )
-
-(defrule fuck-rule
+ 
+(defrule infer-cross-100-0
    ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
    ?c <- (cross (strains ?s1 ?s2)(offspring-int "100-0")(phenotype ?pheno))
    (test (neq ?s1 ?s2))
@@ -325,11 +325,11 @@
 ;;
 ;; Need a rule that captures when you are done.
 
-(defrule done
-    (conclusion (is-written TRUE))
-    =>
-	(predict done ButtonPressed -1)
-    (construct-message
-      [ You are done.  Press the done button.]
-        )
-    )
+;(defrule done
+;    (conclusion (is-written TRUE))
+;    =>
+;	(predict done ButtonPressed -1)
+;    (construct-message
+;      [ You are done.  Press the done button.]
+;        )
+;    )
