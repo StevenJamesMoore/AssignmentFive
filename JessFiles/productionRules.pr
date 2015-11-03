@@ -118,12 +118,13 @@
    ?con1 <- (conclusion (con-type final)(is-inferred FALSE))
    ?s2 <- (strain (conclusions $? ?ignore2 ?con2)(phenotype ?s2pheno))
    ?con2 <- (conclusion (con-type final)(is-inferred FALSE))
+   (test (neq ?s1pheno ?s2pheno))
       =>
    (modify ?p (subgoal make-inferences)(cur-cross nil))
    (if (eq ?pheno ?s1pheno) then ;If it doesn't match strain one's pheno, then it must match strain two's pheno!
-        (modify ?con1 (con-type "final")(con-subtype "homozygous dominant")(is-inferred TRUE)(is-written FALSE)) 
+        (modify ?con1 (con-type final)(con-subtype "homozygous dominant")(is-inferred TRUE)(is-written FALSE)) 
    else
-        (modify ?con2 (con-type "final")(con-subtype "homozygous dominant")(is-inferred TRUE)(is-written FALSE))	  
+        (modify ?con2 (con-type final)(con-subtype "homozygous dominant")(is-inferred TRUE)(is-written FALSE))	  
    )
    (retract ?c)
         )
