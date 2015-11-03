@@ -109,7 +109,6 @@
    (retract ?c)
         )
 
-
 (defrule infer-cross-mix-100-0
    ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
    ?c <- (cross (strains ?s1 ?s2)(offspring-int "100-0")(phenotype ?pheno))
