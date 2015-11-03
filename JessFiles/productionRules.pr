@@ -141,9 +141,9 @@
    ?c <- (cross (strains ?s1 ?s2)(offspring-int "50-50"))
    (test (neq ?s1 ?s2))
    ?s1 <- (strain (conclusions $? ?con1 $?))
-   ?con1 <- (conclusion (con-type final)(is-inferred FALSE))
+   ?con1 <- (conclusion (con-type partial)(is-inferred FALSE))
    ?s2 <- (strain (conclusions $? ?con2 $?))
-   ?con2 <- (conclusion (con-type final)(is-inferred FALSE))
+   ?con2 <- (conclusion (con-type partial)(is-inferred FALSE))
       =>
    (modify ?p (subgoal make-inferences)(cur-cross nil))
    (modify ?con1 (con-subtype "homozygous recessive or heterozygous")(is-inferred TRUE)(is-written FALSE))
@@ -160,8 +160,15 @@
 ;; so no observable actions.
 ;;
 
-(defrule make-inferences
+
+(defrule final-hr-same-phenotype
+   ?p <- (problem (subgoal make-inferences))
+   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?p))
+   ?con-final <- (conclusion(is-inferred FALSE))
+   ?s <- (strain (conclusions $? ?con $?)(phenotype ?p))
+   ?con <- (conclusion(con-type final)(con-subtype "homozygous recessive"))
     =>
+   (modify ?con-final (con-subtype "homozygous recessive")(is-inferred TRUE)(is-written FALSE))
     )
 
 ;; You need to add a number of rules for making new inferences about the strains being crossed.
