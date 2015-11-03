@@ -325,3 +325,11 @@
 ;;
 ;; Need a rule that captures when you are done.
 
+(defrule done
+    (conclusion (is-written TRUE))
+    =>
+	(predict done ButtonPressed -1)
+    (construct-message
+      [ You are done.  Press the done button.]
+        )
+    )
