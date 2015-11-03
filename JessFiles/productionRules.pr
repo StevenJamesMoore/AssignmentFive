@@ -183,9 +183,9 @@
 (defrule infer-rec-from-same-phenotype
    (declare (salience -5))
    ?p <- (problem (subgoal make-inferences))
-   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?p))
+   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?ph))
    ?con-final <- (conclusion(is-inferred FALSE))
-   ?s <- (strain (conclusions $? ?con $?)(phenotype ?p))
+   ?s <- (strain (conclusions $? ?con $?)(phenotype ?ph))
    ?con <- (conclusion(con-type final)(con-subtype "homozygous recessive"))
     =>
    (modify ?con-final (con-subtype "homozygous recessive")(is-inferred TRUE)(is-written FALSE))
@@ -194,11 +194,11 @@
 (defrule infer-rec-from-diff-phenotype
    (declare (salience -5))
    ?p <- (problem (subgoal make-inferences))
-   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?p))
+   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?ph1))
    ?con-final <- (conclusion(is-inferred FALSE))
-   ?s <- (strain (conclusions $? ?con $?)(phenotype ?p2))
-   (test(neq ?p ?p2))
-   ?con <- (conclusion(con-type final)(con-subtype "homozygous recessive"))
+   ?s <- (strain (conclusions $? ?con $?)(phenotype ?ph2))
+   (test(neq ?ph1 ?ph2))
+   ?con <- (conclusion(con-type final)(con-subtype "homozygous dominant"))
     =>
    (modify ?con-final (con-subtype "homozygous recessive")(is-inferred TRUE)(is-written FALSE))
     )
@@ -206,10 +206,10 @@
 (defrule infer-dom-from-same-phenotype
    (declare (salience -5))
    ?p <- (problem (subgoal make-inferences))
-   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?p))
+   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?ph))
    ?con-final <- (conclusion(is-inferred FALSE))
    ?con-part <- (conclusion(is-inferred TRUE)(con-subtype "homozygous"))
-   ?s <- (strain (conclusions $? ?con $?)(phenotype ?p))
+   ?s <- (strain (conclusions $? ?con $?)(phenotype ?ph))
    ?con <- (conclusion(con-type final)(con-subtype "homozygous dominant"))
    ?con <- (conclusion(con-type final)(con-subtype "heterozygous"))
     =>
@@ -219,11 +219,11 @@
 (defrule infer-dom-from-diff-phenotype
    (declare (salience -5))
    ?p <- (problem (subgoal make-inferences))
-   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?p))
+   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?ph1))
    ?con-final <- (conclusion(is-inferred FALSE))
    ?con-part <- (conclusion(is-inferred TRUE)(con-subtype "homozygous recessive or heterozygous"))
-   ?s <- (strain (conclusions $? ?con $?)(phenotype ?p2))
-   (test(neq ?p ?p2))
+   ?s <- (strain (conclusions $? ?con $?)(phenotype ?ph2))
+   (test(neq ?ph1 ?ph2))
    ?con <- (conclusion(con-type final)(con-subtype "homozygous recessive"))
     =>
    (modify ?con-final (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
