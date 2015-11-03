@@ -91,7 +91,7 @@
 
 
 ;;
-;; Conclusions
+;; Conclusions 
 ;;
 
 (bind ?partial-str1 (assert (conclusion (con-type partial)(is-inferred FALSE)(is-written FALSE)(interface-element ?ie-con-part-1))))
