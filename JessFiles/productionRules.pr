@@ -109,6 +109,25 @@
    (retract ?c)
         )
 
+
+(defrule infer-cross-mix-100-0
+   ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
+   ?c <- (cross (strains ?s1 ?s2)(offspring-int "100-0")(phenotype ?pheno))
+   (test (neq ?s1 ?s2))
+   ?s1 <- (strain (conclusions $? ?con1 $?)(phenotype ?s1pheno))
+   ?con1 <- (conclusion (con-type partial)(is-inferred FALSE))
+   ?s2 <- (strain (conclusions $? ?con2 $?)(phenotype ?s2pheno))
+   ?con2 <- (conclusion (con-type partial)(is-inferred FALSE))
+      =>
+   (modify ?p (subgoal make-inferences)(cur-cross nil))
+   (if (eq ?pheno ?s1pheno) then ;If it doesn't match strain one's pheno, then it must match strain two's pheno!
+        (modify ?con1 (con-type "final")(con-subtype "homozygous dominant")(is-inferred TRUE)(is-written FALSE)) 
+   else
+        (modify ?con2 (con-type "final")(con-subtype "homozygous dominant")(is-inferred TRUE)(is-written FALSE))	  
+   )
+   (retract ?c)
+        )
+
 (defrule infer-cross-self-75-25
    ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
    ?c <- (cross (strains ?s1 ?s2)(offspring-int "75-25"))
@@ -120,21 +139,6 @@
    (modify ?con (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
    (retract ?c)
         )
-
-;(defrule infer-cross-mix-75-25
-;   ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
-;   ?c <- (cross (strains ?s1 ?s2)(offspring-int "75-25"))
-;   (test (neq ?s1 ?s2))
-;   ?s1 <- (strain (conclusions $? ?con1 $?))
-;   ?con1 <- (conclusion (con-type final)(is-inferred FALSE))
-;   ?s2 <- (strain (conclusions $? ?con2 $?))
-;   ?con2 <- (conclusion (con-type final)(is-inferred FALSE))
-;      =>
-;   (modify ?p (subgoal make-inferences)(cur-cross nil))
-;   (modify ?con1 (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
-;   (modify ?con2 (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
-;   (retract ?c)
-;        )
 
 (defrule infer-cross-mix-50-50
    ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
@@ -150,6 +154,22 @@
    (modify ?con2 (con-subtype "homozygous recessive or heterozygous")(is-inferred TRUE)(is-written FALSE))
    (retract ?c)
         )
+
+
+;(defrule infer-cross-mix-75-25
+;   ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
+;   ?c <- (cross (strains ?s1 ?s2)(offspring-int "75-25"))
+;   (test (neq ?s1 ?s2))
+;   ?s1 <- (strain (conclusions $? ?con1 $?))
+;   ?con1 <- (conclusion (con-type final)(is-inferred FALSE))
+;   ?s2 <- (strain (conclusions $? ?con2 $?))
+;   ?con2 <- (conclusion (con-type final)(is-inferred FALSE))
+;      =>
+;   (modify ?p (subgoal make-inferences)(cur-cross nil))
+;   (modify ?con1 (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
+;   (modify ?con2 (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
+;   (retract ?c)
+;        )
 
 ;;-----------------------------------------------------------------------------------------------------
 ;;
