@@ -25,22 +25,28 @@
 ;;
 (bind ?cr1 (assert (cross (strains ?str1 ?str1)          ; HD self
                       (offspring-ext "100% Magenta")
-            			(offspring-int "100-0"))))
+            			(offspring-int "100-0")
+            				(phenotype "magenta"))))
 (bind ?cr2 (assert (cross (strains ?str1 ?str2)          ; HD x HR
                       (offspring-ext "100% Magenta")
-						(offspring-int "100-0"))))
+						(offspring-int "100-0")
+            				(phenotype "magenta"))))
 (bind ?cr3 (assert (cross (strains ?str1 ?str3)          ; HD x HR
                       (offspring-ext "100% Magenta")
-            			(offspring-int "100-0"))))
+            			(offspring-int "100-0")
+            				(phenotype "magenta"))))
 (bind ?cr4 (assert (cross (strains ?str2 ?str2)          ; HR self
                       (offspring-ext "100% White")
-						(offspring-int "100-0"))))
+						(offspring-int "100-0")
+            			(phenotype "white"))))
 (bind ?cr5 (assert (cross (strains ?str2 ?str3)          ; HR x HR
                       (offspring-ext "100% White")
-						(offspring-int "100-0"))))
+						(offspring-int "100-0")
+            				(phenotype "white"))))
 (bind ?cr6 (assert (cross (strains ?str3 ?str3)          ; HR self
                       (offspring-ext "100% White")
-            			(offspring-int "100-0"))))
+            			(offspring-int "100-0")
+            				(phenotype "white"))))
 
 
 ;; -------------------------------------------------------------------------------------------
