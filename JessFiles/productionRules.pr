@@ -114,10 +114,10 @@
    ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
    ?c <- (cross (strains ?s1 ?s2)(offspring-int "100-0")(phenotype ?pheno))
    (test (neq ?s1 ?s2))
-   ?s1 <- (strain (conclusions $? ?con1 $?)(phenotype ?s1pheno))
-   ?con1 <- (conclusion (con-type partial)(is-inferred FALSE))
-   ?s2 <- (strain (conclusions $? ?con2 $?)(phenotype ?s2pheno))
-   ?con2 <- (conclusion (con-type partial)(is-inferred FALSE))
+   ?s1 <- (strain (conclusions $? ?ignore1 ?con1)(phenotype ?s1pheno))
+   ?con1 <- (conclusion (con-type final)(is-inferred FALSE))
+   ?s2 <- (strain (conclusions $? ?ignore2 ?con2)(phenotype ?s2pheno))
+   ?con2 <- (conclusion (con-type final)(is-inferred FALSE))
       =>
    (modify ?p (subgoal make-inferences)(cur-cross nil))
    (if (eq ?pheno ?s1pheno) then ;If it doesn't match strain one's pheno, then it must match strain two's pheno!
