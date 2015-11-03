@@ -1,0 +1,254 @@
+(require* wmeTypes "wmeTypes.clp")
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;  This file contains some Jess / CTAT production rules for the Mendel Backwards Problem Solving Tutor
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;--------------------------------------------------------------------------------------------
+;; Functions
+;;
+
+(deffunction remove-duplicates$ (?l)
+    (if (or (not (listp ?l))(= 0 (length$ ?l)))
+        then (return ?l)
+        else
+    		(bind ?f (nth$ 1 ?l))
+    		(bind $?r (remove-duplicates$ (rest$ ?l)))
+    		(if (member$ ?f $?r)
+            	then (return $?r)
+			else (return (create$ ?f $?r)))))
+
+;;--------------------------------------------------------------------------------------------
+;;
+;; Rules for the SELECT-CROSS subgoal
+;;
+;; These two rules canbe  (and should be) used as is. They are all you need for the SELECT-CROSS subgoal.
+
+(defrule select-first-strain
+    (problem (subgoal select-cross))
+    ?s <- (strain (name ?inp))     ; this is the strain we are going to select 
+    (exists (cross (strains $? ?s $?)))    ; TRICKY there must be a cross with this strain we have not tried yet
+    ?p <- (problem (interface-rows ?r $?)(first-strain-cur-cross nil))  ; first open interface row
+    ?r <- (interface-row (ies-strains $? ?ie $?))   ; could pick either open box in the row
+    ?ie <- (interface-element (name ?sel)(value nil))
+    =>
+    (predict ?sel UpdateTextField ?inp)
+    (modify ?p (first-strain-cur-cross ?s))
+    (modify ?ie (value ?inp))
+    )
+
+; Some questions that may help your understanding (note: optional)
+; Why doesn't this rule select a cross to work on?
+; What does the third line mean?   (exists (cross (strains $? ?s $?)))
+
+
+(defrule select-second-strain  
+    ?p <- (problem (subgoal select-cross)(interface-rows ?r $?rest)(first-strain-cur-cross ?s1&~nil))
+    ?c <- (cross (strains $? ?s1 $?)(offspring-ext ?o))     ; find an untried cross with the selected strain
+    ?c <- (cross (strains $? ?s2 $?))       ; TRICKY
+    ?c <- (cross (strains $?strains))
+    (test (or (= 1 (length$ (remove-duplicates$ $?strains)))(neq ?s1 ?s2)))   ; TRICKY
+               ; alternative would be to have separate rules for same strain v. different strains
+    ?s2 <- (strain (name ?inp))
+    ?r <- (interface-row (ies-strains $? ?ie2 $?)(ie-result ?ie3))
+    ?ie2 <- (interface-element (name ?sel2)(value nil))
+    ?ie3 <- (interface-element (name ?sel3))
+        =>
+    (predict ?sel2 NotSpecified ?inp)    ; TRICKY -- TO DO: make input case-indifferent
+    (perform-tutor-action "InterfaceAction" ?sel3 UpdateTextField ?o) ; tutor writes the result
+    (perform-tutor-action "InterfaceAction" ?sel3 lock TRUE)    
+    (modify ?p (first-strain-cur-cross nil)
+        			(interface-rows $?rest)
+        			(cur-cross ?c)
+        			(subgoal infer-from-cross)))
+
+; Some questions that may help your understanding (note: optional)
+;; How do these two rules (select-first-strain and select-second-strain) make sure that no cross is
+;;   repeated?
+
+;; How do they make sure the rows in the interface are used in order? (i.e., how do they prevent
+;    the student from skipping rows?)
+;;		the rule always selects the first empty row 
+;;		the first line, (interface-rows ?r $?rest) select the first row in the list of rows 
+;;		the third to last line (interface-rows $?rest) updates the selectable list of rows 
+
+;; What kind of flexibility do they allow within a row?
+;;		you can pick any column to write the first strain on
+
+;;----------------------------------------------------------------------------------------------------
+;;
+;; Rules for the INFER-FROM-CROSS subgoal
+;;
+;; These rules infer information (i.e., partial or full conclusions) about the two strains from the
+;; results of crossing these strains. They are think rules, not write rules, so no observable actions.
+;;
+;; Note: for any given cross, only a single INFER-FROM-CROSS rule should fire.  You will need several
+;; rules so you can handle different types of crosses and different results from these crosses.
+;;
+
+
+;; Find below a template for this kind of rule. You will need to create a number of rules from this
+;;    template. Once you create the first one, you might comment out the template, so that it does not
+;;    mess up your testing.
+;;
+
+(defrule infer-cross-self-100-0
+   ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
+   ?c <- (cross (strains ?s1 ?s2)(offspring-int "100-0"))
+   (test (eq ?s1 ?s2))
+   ?s1 <- (strain (conclusions $? ?con $?))
+   ?con <- (conclusion (con-type partial)(is-inferred FALSE))
+      =>
+   (modify ?p (subgoal make-inferences)(cur-cross nil))
+   (modify ?con (con-subtype "homozygous")(is-inferred TRUE)(is-written FALSE))
+   (retract ?c)
+        )
+
+(defrule infer-cross-self-75-25
+   ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
+   ?c <- (cross (strains ?s1 ?s2)(offspring-int "75-25"))
+   (test (eq ?s1 ?s2))
+   ?s1 <- (strain (conclusions $? ?con $?))
+   ?con <- (conclusion (con-type final)(is-inferred FALSE))
+      =>
+   (modify ?p (subgoal make-inferences)(cur-cross nil))
+   (modify ?con (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
+   (retract ?c)
+        )
+
+;(defrule infer-cross-mix-75-25
+;   ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
+;   ?c <- (cross (strains ?s1 ?s2)(offspring-int "75-25"))
+;   (test (neq ?s1 ?s2))
+;   ?s1 <- (strain (conclusions $? ?con1 $?))
+;   ?con1 <- (conclusion (con-type final)(is-inferred FALSE))
+;   ?s2 <- (strain (conclusions $? ?con2 $?))
+;   ?con2 <- (conclusion (con-type final)(is-inferred FALSE))
+;      =>
+;   (modify ?p (subgoal make-inferences)(cur-cross nil))
+;   (modify ?con1 (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
+;   (modify ?con2 (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
+;   (retract ?c)
+;        )
+
+(defrule infer-cross-mix-50-50
+   ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
+   ?c <- (cross (strains ?s1 ?s2)(offspring-int "50-50"))
+   (test (neq ?s1 ?s2))
+   ?s1 <- (strain (conclusions $? ?con1 $?))
+   ?con1 <- (conclusion (con-type final)(is-inferred FALSE))
+   ?s2 <- (strain (conclusions $? ?con2 $?))
+   ?con2 <- (conclusion (con-type final)(is-inferred FALSE))
+      =>
+   (modify ?p (subgoal make-inferences)(cur-cross nil))
+   (modify ?con1 (con-subtype "homozygous recessive or heterozygous")(is-inferred TRUE)(is-written FALSE))
+   (modify ?con2 (con-subtype "homozygous recessive or heterozygous")(is-inferred TRUE)(is-written FALSE))
+   (retract ?c)
+        )
+
+;;-----------------------------------------------------------------------------------------------------
+;;
+;; Rules for the MAKE-INFERENCES subgoal
+;;
+;; These rules make inferences that combine final conclusions and partial conclusions from the current cross
+;; with final conclusions and partial conclusion from previous crosses.  They are think rules, not write rules, 
+;; so no observable actions.
+;;
+
+(defrule make-inferences
+    =>
+    )
+
+;; You need to add a number of rules for making new inferences about the strains being crossed.
+;; Note: these rules should not change the subgoal, that is the prerogative of the rule
+;;    done-inferencing below.
+
+
+;; The rule done-inferencing below can be (and probably should be) used as is in the final model.
+;; That is, it is not a template.
+
+(defrule done-inferencing
+    (declare (salience -10))    ; this rule should come after all the interencing rules
+    ?p <- (problem (subgoal make-inferences))
+    =>
+    (predict DONT-CARE DONT-CARE DONT-CARE)   ; this ends the chain
+    (modify ?p (subgoal enter-inferences))    ; mainly to prevent done-with-mandatory-inferences
+        ; from firing when it should not
+    )
+
+;;-----------------------------------------------------------------------------------------------------
+;;
+;; Rules for subgoal ENTER-INFERENCES.
+;;
+;; These rules simulate the entering of the inferences into the interface. There are 5 rules for
+;;    entering inferences (for 2 different partial conclusions and 3 different full conclusions).
+;; There is also one "stop rule" (i.e., done-with-mandatory-input) that determines when all key
+;;    inferences have been entered. This stop rule is crucial. It may well be the most difficult
+;;    rule to write.
+;; 
+
+
+;; The following rule can serve as template (once you have written the first one, you may want to
+;;    comment out the template).
+;;
+(defrule template-enter-specific-conclusion
+   (problem (subgoal enter-inferences))
+   ?c <- (conclusion (con-subtype ?con)(is-inferred TRUE)(is-written FALSE)(interface-element ?ie))
+   ?ie <- (interface-element (name ?sel)(value nil))
+        ;; add Jess code for the conditions under which the conclusion can be entered (assume it
+        ;;     has been inferred but not yet written)
+        =>
+   ;(bind ?sel "nameOfInterfaceElement")   ; In real rules, you would bind ?sel on the lhs, not rhs.
+                 ;; I am putting this bind here for now so we do not get an error in the Jess Console.
+                 ;; Make sure you delete this call to bind.
+   (predict ?sel UpdateComboBox ?con)
+   (modify ?c (is-written TRUE))
+        ;; Add Jess code for recording the observable action in the representation of the interface
+        ;;    in working memory (it was already recorded in the semantic representation by the
+        ;;    inference rules)
+        ;; Note this rule should not change the subgoal, since it does not know when all inferences
+        ;;    have been entered.
+        )
+
+;; 
+;; Rule done-with-mandatory-input determines when it is fine to move on to the next cross. It should
+;; check that there are no more pending inferences that need to be entered first. The rule below is a
+;; stub version of that rule. 
+;;
+;; Note: by "pending inferences" we mean full or partial conclusions about a strain that have been
+;;     inferred but that have not been written yet.
+ 
+;; It is fine to move on to the next cross IF:
+;; (a) there are no pending inferences that are full conclusions and 
+;; (b) there are no no pending inferences that are partial conclusons for strains for which we do
+;;     not yet have a full conclusion (either pending or written).
+;;
+;; Note: this means that some pending inferences are kept in working memory in pending status (i.e.,
+;;    inferred but not written) so they can optionally be entered later, namely, partial conclusions
+;;    for strains for which we have already reached a full conclusion. We don't really care about whether
+;;    and when the student enters these inferences - we treat them as non-mandatory, redundant inferences.
+;;
+
+
+(defrule done-with-mandatory-input
+    ?p <- (problem (subgoal enter-inferences))
+        ;; Add Jess code specifying the conditions under which all key pending inferences have been
+        ;;     entered.  This is challenging.  You may need to use the Jess construct "not" and it is
+        ;;     possible you need to augment one or more of your templates to make these conditions easily
+        ;;     expressible.  
+    =>
+    (modify ?p (subgoal select-cross))
+        ;; This is all the rule needs on the rhs.
+        )
+
+;;--------------------------------------------------------------------------------------------------
+;;
+;;  DONE
+;;
+;; Need a rule that captures when you are done.
+

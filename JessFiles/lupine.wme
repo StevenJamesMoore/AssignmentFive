@@ -1,0 +1,97 @@
+(require* wmeTypes "wmeTypes.clp")
+
+
+;; -------------------------------------------------------------------------------------------
+;; This part varies by problem.
+
+;;
+;; Strains
+;;
+(bind ?str1 (assert (strain (name "Pink-1")(phenotype "pink"))))   ; HR
+(bind ?str2 (assert (strain (name "Blue-1")(phenotype "blue"))))   ; HD
+(bind ?str3 (assert (strain (name "Blue-2")(phenotype "blue"))))   ; Het
+
+
+
+;;
+;; Crosses
+;;
+(bind ?cr1 (assert (cross (strains ?str1 ?str1)(offspring-ext "100% Pink")(offspring-int "100-0")(phenotype "pink"))))
+(bind ?cr2 (assert (cross (strains ?str1 ?str2)(offspring-ext "100% Blue")(offspring-int "100-0")(phenotype "blue"))))
+(bind ?cr3 (assert (cross (strains ?str1 ?str3)(offspring-ext "50% Pink, 50% Blue")(offspring-int "50-50"))))
+(bind ?cr4 (assert (cross (strains ?str2 ?str2)(offspring-ext "100% Blue")(offspring-int "100-0")(phenotype "blue"))))
+(bind ?cr5 (assert (cross (strains ?str2 ?str3)(offspring-ext "100% Blue")(offspring-int "100-0")(phenotype "blue"))))
+(bind ?cr6 (assert (cross (strains ?str3 ?str3)(offspring-ext "25% Pink, 75% Blue")(offspring-int "75-25"))))
+
+
+;; -------------------------------------------------------------------------------------------
+; The facts that represent the interface in working memory do not vary by problem.
+
+(bind ?ie11 (assert (interface-element (name Cr1Str1))))
+(bind ?ie12 (assert (interface-element (name Cr1Str2))))
+(bind ?ie13 (assert (interface-element (name Cr1Offspring))))
+(bind ?r1 (assert (interface-row (ies-strains ?ie11 ?ie12)(ie-result ?ie13))))
+
+(bind ?ie21 (assert (interface-element (name Cr2Str1))))
+(bind ?ie22 (assert (interface-element (name Cr2Str2))))
+(bind ?ie23 (assert (interface-element (name Cr2Offspring))))
+(bind ?r2 (assert (interface-row (ies-strains ?ie21 ?ie22)(ie-result ?ie23))))
+        
+(bind ?ie31 (assert (interface-element (name Cr3Str1))))
+(bind ?ie32 (assert (interface-element (name Cr3Str2))))
+(bind ?ie33 (assert (interface-element (name Cr3Offspring))))
+(bind ?r3 (assert (interface-row (ies-strains ?ie31 ?ie32)(ie-result ?ie33))))
+            
+(bind ?ie41 (assert (interface-element (name Cr4Str1))))
+(bind ?ie42 (assert (interface-element (name Cr4Str2))))
+(bind ?ie43 (assert (interface-element (name Cr4Offspring))))
+(bind ?r4 (assert (interface-row (ies-strains ?ie41 ?ie42)(ie-result ?ie43))))
+                
+(bind ?ie51 (assert (interface-element (name Cr5Str1))))
+(bind ?ie52 (assert (interface-element (name Cr5Str2))))
+(bind ?ie53 (assert (interface-element (name Cr5Offspring))))
+(bind ?r5 (assert (interface-row (ies-strains ?ie51 ?ie52)(ie-result ?ie53))))
+                    
+(bind ?ie61 (assert (interface-element (name Cr6Str1))))
+(bind ?ie62 (assert (interface-element (name Cr6Str2))))
+(bind ?ie63 (assert (interface-element (name Cr6Offspring))))
+(bind ?r6 (assert (interface-row (ies-strains ?ie61 ?ie62)(ie-result ?ie63))))
+
+(bind ?ie-con-part-1 (assert (interface-element (name concPartStr1))))
+(bind ?ie-con-part-2 (assert (interface-element (name concPartStr2))))
+(bind ?ie-con-part-3 (assert (interface-element (name concPartStr3))))
+(bind ?ie-con-final-1 (assert (interface-element (name concFinalStr1))))
+(bind ?ie-con-final-2 (assert (interface-element (name concFinalStr2))))
+(bind ?ie-con-final-3 (assert (interface-element (name concFinalStr3))))
+
+
+;; -------------------------------------------------------------------------------------------
+; Link the interface facts to the problem facts to establish the mapping between the
+;   semantic representation of the problem and the facts in working memory that
+;   represent the interface.
+
+
+;;
+;; Conclusions
+;;
+
+(bind ?partial-str1 (assert (conclusion (con-type partial)(is-inferred FALSE)(is-written FALSE)(interface-element ?ie-con-part-1))))
+(bind ?partial-str2 (assert (conclusion (con-type partial)(is-inferred FALSE)(is-written FALSE)(interface-element ?ie-con-part-2))))
+(bind ?partial-str3 (assert (conclusion (con-type partial)(is-inferred FALSE)(is-written FALSE)(interface-element ?ie-con-part-3))))
+(bind ?final-str1 (assert (conclusion (con-type final)(is-inferred FALSE)(is-written FALSE)(interface-element ?ie-con-final-1))))
+(bind ?final-str2 (assert (conclusion (con-type final)(is-inferred FALSE)(is-written FALSE)(interface-element ?ie-con-final-2))))
+(bind ?final-str3 (assert (conclusion (con-type final)(is-inferred FALSE)(is-written FALSE)(interface-element ?ie-con-final-3))))
+
+
+;; modify strain information
+(modify ?str1 (conclusions ?partial-str1 ?final-str1))
+(modify ?str2 (conclusions ?partial-str2 ?final-str2))
+(modify ?str3 (conclusions ?partial-str3 ?final-str3))
+
+
+
+(bind ?prob (assert (problem
+        (name lupine)
+        (interface-rows ?r1 ?r2 ?r3 ?r4 ?r5 ?r6)
+            )))
+
