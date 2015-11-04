@@ -24,25 +24,26 @@
 
 (deftemplate strain
     (slot name)
-    (slot phenotype)
-    (multislot conclusions)
+    (slot phenotype)		;; added phenotype slot for further inferences
+    (multislot conclusions)	;; added conclusions multislot to model the partial and final conclusions
         )
 
 (deftemplate conclusion
-    (slot con-type) ; partial/final
-    (slot con-subtype) 
-    	; partial: homozygous/homozygous recessive or heterozygous 
-    	; final: homozygous dominant/homozygous recessive/heterozygous
-    (slot is-inferred) ;boolean
-    (slot is-written) ;boolean
-    (slot interface-element) ;interface representation
+    (slot con-type) ;; label - if it's a partial/final conclusion
+    (slot con-subtype)
+    	;;	label - the value based on the options on the interface dropdowns 
+    	;;	partial: homozygous/homozygous recessive or heterozygous 
+    	;;	final: homozygous dominant/homozygous recessive/heterozygous
+    (slot is-inferred) ;; boolean - TRUE if the conclusion has been infered from previous rules
+    (slot is-written) ;; boolean - TRUE if the conclusion has been updated on the interface
+    (slot interface-element) ;; link to interface representation
         )
 
 (deftemplate cross
     (multislot strains)
     (slot offspring-ext)    ; a string to be printed in the interface
-    (slot offspring-int)
-    (slot phenotype)
+    (slot offspring-int)	;; added an internal representation of the offspring's ratio
+    (slot phenotype)		;; added an internal representation of the more frequent offspring's phenotype (only for the 100-0 case)
     )
 
 (deftemplate interface-row
