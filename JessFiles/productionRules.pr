@@ -97,6 +97,7 @@
 ;;    mess up your testing.
 ;;
 
+;Cases like BB x BB
 (defrule infer-cross-self-100-0
    ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
    ?c <- (cross (strains ?s1 ?s2)(offspring-int "100-0"))
@@ -115,6 +116,7 @@
    (retract ?c)
         )
 
+;Cases like BB * pp
 (defrule infer-cross-mix-100-0
    ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
    ?c <- (cross (strains ?s1 ?s2)(offspring-int "100-0")(phenotype ?pheno))
@@ -134,6 +136,7 @@
    (retract ?c)
         )
  
+;Cases like BB * Bb
 (defrule infer-cross-100-0
    ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
    ?c <- (cross (strains ?s1 ?s2)(offspring-int "100-0")(phenotype ?pheno))
@@ -148,6 +151,7 @@
    (retract ?c)
         )
 
+;Bb * Bb
 (defrule infer-cross-self-75-25
    ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
    ?c <- (cross (strains ?s1 ?s2)(offspring-int "75-25"))
@@ -211,6 +215,10 @@
 ;; with final conclusions and partial conclusion from previous crosses.  They are think rules, not write rules, 
 ;; so no observable actions.
 ;;
+
+;IF a strain has partial conclusion (HR or Het) and has partial conclusion H 
+;THEN final conclusion for that strain = HR
+
 (defrule infer-rec-from-double-partial
    (declare (salience -5))
    ?p <- (problem (subgoal make-inferences))
@@ -220,6 +228,10 @@
     =>
    (modify ?con-final (con-subtype "homozygous recessive")(is-inferred TRUE)(is-written FALSE))
     )
+
+;IF a strain has no final conclusion
+;And a different strain with the same phenotype = HR
+;THEN final conclusion for the first strain = HR
 
 (defrule infer-rec-from-same-phenotype
    (declare (salience -5))
@@ -231,6 +243,10 @@
     =>
    (modify ?con-final (con-subtype "homozygous recessive")(is-inferred TRUE)(is-written FALSE))
     )
+
+;IF a strain has no final conclusion
+;And a strain with a different phenotype = HD/Het 
+;THEN final conclusion for the first strain = HR
 
 (defrule infer-rec-from-diff-phenotype
    (declare (salience -5))
@@ -245,6 +261,10 @@
    (modify ?con-final (con-subtype "homozygous recessive")(is-inferred TRUE)(is-written FALSE))
     )
 
+;If a strain has no final conclusion and has partial conclusion (HR or Het)
+;And a strain with diff phenotype = HR 
+;THEN final conclusion for first strain = Het
+
 (defrule infer-dom-from-same-phenotype
    (declare (salience -5))
    ?p <- (problem (subgoal make-inferences))
@@ -257,6 +277,10 @@
     =>
    (modify ?con-final (con-subtype "homozygous dominant")(is-inferred TRUE)(is-written FALSE))
     )
+
+;IF a strain has no final conclusion and has partial conclusion H
+;And a strain with the same phenotype = HD/HT 
+;THEN final conclusion for the first strain = HD
 
 (defrule infer-dom-from-diff-phenotype
    (declare (salience -5))
@@ -342,7 +366,6 @@
     ?p <- (problem (subgoal enter-inferences))
     (not (conclusion (is-inferred TRUE)(is-written FALSE)))
     =>
-        (printout t "steveeeeeeeeeeen" crlf)
     (modify ?p (subgoal select-cross))
         ;; This is all the rule needs on the rhs.
         )
@@ -354,6 +377,7 @@
 ;; Need a rule that captures when you are done.
 
 (defrule done
+    ?p <- (problem (subgoal select-cross))
      (not (conclusion (con-type final)(is-written FALSE)))
     =>
 	(predict done ButtonPressed -1)
