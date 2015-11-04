@@ -38,7 +38,7 @@
 (bind ?cr4 (assert (cross (strains ?str2 ?str2)          ; HR self
                       (offspring-ext "100% White")
 						(offspring-int "100-0")
-            				(phenotype "white"))))
+            			(phenotype "white"))))
 (bind ?cr5 (assert (cross (strains ?str2 ?str3)          ; HR x HR
                       (offspring-ext "100% White")
 						(offspring-int "100-0")

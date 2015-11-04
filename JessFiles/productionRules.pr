@@ -154,6 +154,22 @@
    (retract ?c)
         )
 
+(defrule infer-cross-mix-75-25
+   ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
+   ?c <- (cross (strains ?s1 ?s2)(offspring-int "75-25"))
+   (test (neq ?s1 ?s2))
+   ?s1 <- (strain (conclusions $? ?con1 $?))
+   ?con1 <- (conclusion (con-type final)(is-inferred FALSE))
+   ?s2 <- (strain (conclusions $? ?con2 $?))
+   ?con2 <- (conclusion (con-type final)(is-inferred FALSE))
+      =>
+   (modify ?p (subgoal make-inferences)(cur-cross nil))
+   (modify ?con1 (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
+   (modify ?con2 (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
+   (retract ?c)
+        )
+
+
 (defrule infer-cross-mix-50-50
    ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
    ?c <- (cross (strains ?s1 ?s2)(offspring-int "50-50"))
@@ -169,22 +185,6 @@
    (retract ?c)
         )
 
-
-;(defrule infer-cross-mix-75-25
-;   ?p <- (problem (subgoal infer-from-cross)(cur-cross ?c))
-;   ?c <- (cross (strains ?s1 ?s2)(offspring-int "75-25"))
-;   (test (neq ?s1 ?s2))
-;   ?s1 <- (strain (conclusions $? ?con1 $?))
-;   ?con1 <- (conclusion (con-type final)(is-inferred FALSE))
-;   ?s2 <- (strain (conclusions $? ?con2 $?))
-;   ?con2 <- (conclusion (con-type final)(is-inferred FALSE))
-;      =>
-;   (modify ?p (subgoal make-inferences)(cur-cross nil))
-;   (modify ?con1 (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
-;   (modify ?con2 (con-subtype "heterozygous")(is-inferred TRUE)(is-written FALSE))
-;   (retract ?c)
-;        )
-
 ;;-----------------------------------------------------------------------------------------------------
 ;;
 ;; Rules for the MAKE-INFERENCES subgoal
@@ -193,6 +193,22 @@
 ;; with final conclusions and partial conclusion from previous crosses.  They are think rules, not write rules, 
 ;; so no observable actions.
 ;;
+(defrule infer-rec-from-double-partial
+   (declare (salience -5))
+   ?p <- (problem (subgoal make-inferences))
+   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?ph))
+   ?con-final <- (conclusion(is-inferred FALSE))
+   ?s <- (strain (conclusions $? ?con $?)(phenotype ?ph))
+   ?con <- (conclusion(con-type final)(con-subtype "homozygous recessive"))
+
+;   ?c <- (cross (strains ?s1 ?s2)(offspring-int "100-0"))
+;   (test (eq ?s1 ?s2))
+;   ?s1 <- (strain (conclusions $? ?con $?))
+;   ?con <- (conclusion (con-type partial));(is-inferred FALSE)) Steven
+
+    =>
+   (modify ?con-final (con-subtype "homozygous recessive")(is-inferred TRUE)(is-written FALSE))
+    )
 
 (defrule infer-rec-from-same-phenotype
    (declare (salience -5))
