@@ -102,10 +102,16 @@
    ?c <- (cross (strains ?s1 ?s2)(offspring-int "100-0"))
    (test (eq ?s1 ?s2))
    ?s1 <- (strain (conclusions $? ?con $?))
-   ?con <- (conclusion (con-type partial)(is-inferred FALSE))
+   ?con <- (conclusion (con-type partial)(is-inferred ?inf)(con-subtype ?sub))
+   (test (neq ?sub "homozygous"))
       =>
    (modify ?p (subgoal make-inferences)(cur-cross nil))
-   (modify ?con (con-subtype "homozygous")(is-inferred TRUE)(is-written FALSE))
+    (if (eq ?inf TRUE) then
+    	(modify ?con (con-subtype "both")(is-inferred TRUE)(is-written TRUE))
+    else 
+    	(modify ?con (con-subtype "homozygous")(is-inferred TRUE)(is-written FALSE))
+    )
+   ;(modify ?con (con-subtype "homozygous")(is-inferred TRUE)(is-written FALSE))
    (retract ?c)
         )
 
@@ -114,13 +120,13 @@
    ?c <- (cross (strains ?s1 ?s2)(offspring-int "100-0")(phenotype ?pheno))
    (test (neq ?s1 ?s2))
    ?s1 <- (strain (conclusions $? ?ignore1 ?con1)(phenotype ?s1pheno))
-   ?con1 <- (conclusion (con-type final)(is-inferred FALSE))
+   ?con1 <- (conclusion (con-type final)(is-inferred ?inf1))
    ?s2 <- (strain (conclusions $? ?ignore2 ?con2)(phenotype ?s2pheno))
-   ?con2 <- (conclusion (con-type final)(is-inferred FALSE))
+   ?con2 <- (conclusion (con-type final))
    (test (neq ?s1pheno ?s2pheno))
       =>
    (modify ?p (subgoal make-inferences)(cur-cross nil))
-   (if (eq ?pheno ?s1pheno) then ;If it doesn't match strain one's pheno, then it must match strain two's pheno!
+   (if (and (eq ?pheno ?s1pheno) (eq ?inf1 FALSE)) then ;If it doesn't match strain one's pheno, then it must match strain two's pheno!
         (modify ?con1 (con-type final)(con-subtype "homozygous dominant")(is-inferred TRUE)(is-written FALSE)) 
    else
         (modify ?con2 (con-type final)(con-subtype "homozygous dominant")(is-inferred TRUE)(is-written FALSE))	  
@@ -175,14 +181,26 @@
    ?c <- (cross (strains ?s1 ?s2)(offspring-int "50-50"))
    (test (neq ?s1 ?s2))
    ?s1 <- (strain (conclusions $? ?con1 $?))
-   ?con1 <- (conclusion (con-type partial)(is-inferred FALSE))
+   ?con1 <- (conclusion (con-type partial)(con-subtype ?sub1)(is-inferred ?inf1));(is-inferred FALSE))
    ?s2 <- (strain (conclusions $? ?con2 $?))
-   ?con2 <- (conclusion (con-type partial)(is-inferred FALSE))
+   ?con2 <- (conclusion (con-type partial)(con-subtype ?sub2)(is-inferred ?inf2));(is-inferred FALSE))
+   (test (neq ?sub1 "homozygous recessive or heterozygous"))
+   (test (neq ?sub2 "homozygous recessive or heterozygous"))
       =>
    (modify ?p (subgoal make-inferences)(cur-cross nil))
-   (modify ?con1 (con-subtype "homozygous recessive or heterozygous")(is-inferred TRUE)(is-written FALSE))
-   (modify ?con2 (con-subtype "homozygous recessive or heterozygous")(is-inferred TRUE)(is-written FALSE))
-   (retract ?c)
+   ;(modify ?con1 (con-subtype "homozygous recessive or heterozygous")(is-inferred TRUE)(is-written FALSE))
+   ;(modify ?con2 (con-subtype "homozygous recessive or heterozygous")(is-inferred TRUE)(is-written FALSE))
+   (if (and (eq ?inf1 TRUE)) then
+		(modify ?con1 (con-subtype "both")(is-inferred TRUE)(is-written TRUE))
+	else 
+		(modify ?con1 (con-subtype "homozygous recessive or heterozygous")(is-inferred TRUE)(is-written FALSE))
+	)
+    (if (and (eq ?inf2 TRUE)) then
+		(modify ?con2 (con-subtype "both")(is-inferred TRUE)(is-written TRUE))
+	else 
+		(modify ?con2 (con-subtype "homozygous recessive or heterozygous")(is-inferred TRUE)(is-written FALSE))
+	)
+    (retract ?c)
         )
 
 ;;-----------------------------------------------------------------------------------------------------
@@ -196,16 +214,9 @@
 (defrule infer-rec-from-double-partial
    (declare (salience -5))
    ?p <- (problem (subgoal make-inferences))
-   ?s1 <- (strain (conclusions ?con-part ?con-final)(phenotype ?ph))
+   ?s1 <- (strain (conclusions ?con-part ?con-final))
    ?con-final <- (conclusion(is-inferred FALSE))
-   ?s <- (strain (conclusions $? ?con $?)(phenotype ?ph))
-   ?con <- (conclusion(con-type final)(con-subtype "homozygous recessive"))
-
-;   ?c <- (cross (strains ?s1 ?s2)(offspring-int "100-0"))
-;   (test (eq ?s1 ?s2))
-;   ?s1 <- (strain (conclusions $? ?con $?))
-;   ?con <- (conclusion (con-type partial));(is-inferred FALSE)) Steven
-
+   ?con-part <- (conclusion(con-subtype "both"))
     =>
    (modify ?con-final (con-subtype "homozygous recessive")(is-inferred TRUE)(is-written FALSE))
     )
@@ -228,7 +239,8 @@
    ?con-final <- (conclusion(is-inferred FALSE))
    ?s <- (strain (conclusions $? ?con $?)(phenotype ?ph2))
    (test(neq ?ph1 ?ph2))
-   ?con <- (conclusion(con-type final)(con-subtype "homozygous dominant"))
+   ?con <- (conclusion(con-type final)(con-subtype ?conType))
+   (test(or (eq ?conType "homozygous dominant") (eq ?conType "herterozygous")))
     =>
    (modify ?con-final (con-subtype "homozygous recessive")(is-inferred TRUE)(is-written FALSE))
     )
@@ -240,8 +252,8 @@
    ?con-final <- (conclusion(is-inferred FALSE))
    ?con-part <- (conclusion(is-inferred TRUE)(con-subtype "homozygous"))
    ?s <- (strain (conclusions $? ?con $?)(phenotype ?ph))
-   ?con <- (conclusion(con-type final)(con-subtype "homozygous dominant"))
-   ?con <- (conclusion(con-type final)(con-subtype "heterozygous"))
+   ?con <- (conclusion(con-type final)(con-subtype ?conType))
+   (test(or (eq ?conType "homozygous dominant") (eq ?conType "herterozygous")))
     =>
    (modify ?con-final (con-subtype "homozygous dominant")(is-inferred TRUE)(is-written FALSE))
     )
@@ -340,11 +352,12 @@
 ;;
 ;; Need a rule that captures when you are done.
 
-;(defrule done
-;    (conclusion (is-written TRUE))
-;    =>
-;	(predict done ButtonPressed -1)
-;    (construct-message
-;      [ You are done.  Press the done button.]
-;        )
-;    )
+(defrule done
+     (not (conclusion (con-type final)(is-written FALSE)))
+    =>
+    (printout t "steveeeeeeeeeeen" crlf)
+	(predict done ButtonPressed -1)
+    (construct-message
+      [ You are done.  Press the done button.]
+        )
+    )
