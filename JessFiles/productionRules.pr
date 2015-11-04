@@ -304,7 +304,7 @@
 ;; The following rule can serve as template (once you have written the first one, you may want to
 ;;    comment out the template).
 ;;
-(defrule template-enter-specific-conclusion
+(defrule enter-specific-conclusion
    (problem (subgoal enter-inferences))
    ?c <- (conclusion (con-subtype ?con)(is-inferred TRUE)(is-written FALSE)(interface-element ?ie))
    ?ie <- (interface-element (name ?sel)(value nil))
@@ -343,6 +343,7 @@
     ?p <- (problem (subgoal enter-inferences))
     (not (conclusion (is-inferred TRUE)(is-written FALSE)))
     =>
+        (printout t "steveeeeeeeeeeen" crlf)
     (modify ?p (subgoal select-cross))
         ;; This is all the rule needs on the rhs.
         )
@@ -356,7 +357,6 @@
 (defrule done
      (not (conclusion (con-type final)(is-written FALSE)))
     =>
-    (printout t "steveeeeeeeeeeen" crlf)
 	(predict done ButtonPressed -1)
     (construct-message
       [ You are done.  Press the done button.]
